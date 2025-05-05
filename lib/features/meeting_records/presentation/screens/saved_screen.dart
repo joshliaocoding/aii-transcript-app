@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import generated localizations
+
 import 'package:ai_transcript_app/features/meeting_records/presentation/providers/meeting_records_provider.dart';
 import 'package:ai_transcript_app/features/meeting_records/presentation/widgets/meeting_card.dart';
 
@@ -9,6 +11,8 @@ class SavedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Access the localization object
+    final l10n = AppLocalizations.of(context)!;
     // Use Consumer to listen to the MeetingRecordsProvider
     return Consumer<MeetingRecordsProvider>(
       builder: (context, meetingProvider, child) {
@@ -19,7 +23,9 @@ class SavedScreen extends StatelessWidget {
                 .toList();
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Saved Meetings')),
+          appBar: AppBar(
+            title: Text(l10n.savedMeetingsTitle),
+          ), // Use localized title
           body:
               favoriteRecords.isEmpty
                   ? Center(
@@ -33,13 +39,13 @@ class SavedScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No saved meetings yet.',
+                          l10n.noSavedMeetings, // Use localized string
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(color: Colors.grey[600]),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Tap the heart icon on a meeting to save it.',
+                          l10n.tapHeartToSave, // Use localized string
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: Colors.grey[600]),
                           textAlign: TextAlign.center,
@@ -69,8 +75,10 @@ class SavedScreen extends StatelessWidget {
                               content: Text(
                                 record
                                         .isFavorite // Check the updated status
-                                    ? 'Removed from favorites'
-                                    : 'Added to favorites',
+                                    ? l10n
+                                        .removedFromFavorites // Use localized string
+                                    : l10n
+                                        .addedToFavorites, // Use localized string
                               ),
                               duration: const Duration(seconds: 1),
                             ),

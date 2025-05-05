@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import generated localizations
 
 // Import your components, models, and providers from their new locations
 import 'package:ai_transcript_app/features/meeting_records/presentation/widgets/meeting_card.dart';
@@ -12,6 +13,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Access the localization object
+    final l10n = AppLocalizations.of(context)!;
     // Use Consumer to listen to the MeetingRecordsProvider
     return Consumer<MeetingRecordsProvider>(
       builder: (context, meetingProvider, child) {
@@ -20,7 +23,7 @@ class HomeScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Recent Meetings'),
+            title: Text(l10n.homeTitle), // Use localized title
             // Optional: Add actions like search or sort
             // actions: [ ... ],
           ),
@@ -38,13 +41,13 @@ class HomeScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No meeting records yet.',
+                          l10n.noMeetingRecords, // Use localized string
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(color: Colors.grey[600]),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Tap the microphone button to start recording.',
+                          l10n.tapMicToRecord, // Use localized string
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: Colors.grey[600]),
                           textAlign: TextAlign.center,
@@ -75,8 +78,9 @@ class HomeScreen extends StatelessWidget {
                               content: Text(
                                 record
                                         .isFavorite // Check the updated status
-                                    ? 'Removed from favorites'
-                                    : 'Added to favorites',
+                                    ? l10n
+                                        .removedFromFavorites // Localize
+                                    : l10n.addedToFavorites, // Localize
                               ),
                               duration: const Duration(seconds: 1),
                             ),
@@ -90,7 +94,7 @@ class HomeScreen extends StatelessWidget {
             onPressed: () {
               context.go('/record'); // Navigate to RecordScreen
             },
-            tooltip: 'Record New Meeting',
+            tooltip: l10n.recordNewMeetingTooltip, // Localize tooltip
             backgroundColor: Colors.blueAccent,
             child: const Icon(Icons.mic, color: Colors.white),
           ),

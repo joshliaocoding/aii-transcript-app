@@ -3,15 +3,12 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:record/record.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import generated localizations
 
 import 'package:ai_transcript_app/features/recording/presentation/providers/audio_recording_provider.dart';
-import 'package:ai_transcript_app/features/meeting_records/domain/entities/meeting_record.dart'; // Import the entity
+import 'package:ai_transcript_app/features/recording/presentation/providers/recording_session_provider.dart'; // Import the new provider
 import 'package:ai_transcript_app/features/meeting_records/presentation/providers/meeting_records_provider.dart'; // Import meeting records provider
-import 'package:ai_transcript_app/core/utils/date_formatting.dart'; // Import date formatting utility
 
 class RecordScreen extends StatefulWidget {
   const RecordScreen({super.key});
@@ -21,67 +18,33 @@ class RecordScreen extends StatefulWidget {
 }
 
 class _RecordScreenState extends State<RecordScreen> {
-  late final Record _audioRecorder;
-  // bool _isRecording = false; // Use provider state
-  bool _hasRecorded = false;
-  String? _recordFilePath;
-  DateTime? _recordingStartTime;
-  DateTime? _recordingEndTime;
-
   late TextEditingController _titleController;
   late TextEditingController _participantsController;
-
-  // Get provider instances
-  late AudioRecordingProvider _audioRecordingProvider;
-  late MeetingRecordsProvider _meetingRecordsProvider;
-
-  // Timer for recording duration display
-  Timer? _timer;
-  int _startTimer = 0;
 
   @override
   void initState() {
     super.initState();
-    _audioRecorder = Record();
     _titleController = TextEditingController();
     _participantsController = TextEditingController();
-    _checkPermissions(); // Check permissions on screen load
 
-    // Initialize providers
-    _audioRecordingProvider = Provider.of<AudioRecordingProvider>(
-      context,
-      listen: false,
-    );
-    _meetingRecordsProvider = Provider.of<MeetingRecordsProvider>(
-      context,
-      listen: false,
-    );
-
-    // Initialize speech-to-text when the screen loads
-    // This is now handled by the provider's constructor or first access,
+    // Initialize Speech-to-Text when the screen loads.
+    // This is now handled by the AudioRecordingProvider's constructor or first access,
     // but calling it here explicitly ensures it starts early.
-    _audioRecordingProvider.initializeSpeech();
+    // Access using listen: false as we only need to call a method.
+    Provider.of<AudioRecordingProvider>(
+      context,
+      listen: false,
+    ).initializeSpeech();
   }
 
   @override
   void dispose() {
-    _audioRecorder.dispose();
     _titleController.dispose();
     _participantsController.dispose();
-    _audioRecordingProvider.cancelListening(); // Cancel listening on dispose
-    _timer?.cancel(); // Cancel the timer
+    // Note: Disposing of the recorder and cancelling timers is now handled
+    // in the RecordingSessionProvider's dispose method.
+    // Cancelling STT listening is handled by the provider's discard method.
     super.dispose();
-  }
-
-  Future<void> _checkPermissions() async {
-    var micStatus = await Permission.microphone.status;
-    if (micStatus.isDenied || micStatus.isRestricted) {
-      micStatus = await Permission.microphone.request();
-    }
-    if (kDebugMode) {
-      print("Initial microphone permission status on init: ${micStatus.name}");
-    }
-    // Speech permission is handled by AudioRecordingProvider now
   }
 
   void _showSnackBar(String message) {
@@ -91,349 +54,214 @@ class _RecordScreenState extends State<RecordScreen> {
     );
   }
 
-  void _startTimerDisplay() {
-    _startTimer = 0;
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      if (mounted) {
-        setState(() {
-          _startTimer++;
-        });
-      } else {
-        timer.cancel();
-      }
-    });
-  }
-
-  String _formatTimerDuration(int seconds) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    int hours = seconds ~/ 3600;
-    int minutes = (seconds % 3600) ~/ 60;
-    int remainingSeconds = seconds % 60;
-    return "${twoDigits(hours)}:${twoDigits(minutes)}:${twoDigits(remainingSeconds)}";
-  }
-
-  Future<void> _startRecording() async {
-    // Use provider state to check if already recording
-    if (_audioRecordingProvider.isListening) return;
-    FocusScope.of(context).unfocus();
-
-    try {
-      if (kIsWeb) {
-        _showSnackBar('Recording not supported on web');
-        return;
-      }
-
-      var micStatus = await Permission.microphone.request();
-      // Speech permission is requested by the provider during its initialization
-      if (micStatus != PermissionStatus.granted) {
-        _showSnackBar('Microphone permission is required for recording.');
-        if (micStatus == PermissionStatus.permanentlyDenied) {
-          await openAppSettings();
-        }
-        return;
-      }
-
-      // Ensure STT is initialized and enabled before starting recording
-      if (!_audioRecordingProvider.speechEnabled &&
-          !_audioRecordingProvider.isSpeechInitializing) {
-        await _audioRecordingProvider.initializeSpeech();
-      }
-      if (!_audioRecordingProvider.speechEnabled) {
-        _showSnackBar(
-          'Speech recognition is not available or permission denied.',
-        );
-        return; // Cannot record without speech recognition for transcription
-      }
-
-      Directory tempDir = await getTemporaryDirectory();
-      setState(() {
-        _recordFilePath =
-            '${tempDir.path}/meeting_${DateTime.now().millisecondsSinceEpoch}.m4a';
-        _recordingStartTime = null;
-        _recordingEndTime = null;
-        _hasRecorded = false;
-        _startTimer = 0; // Reset timer
-      });
-
-      if (kDebugMode)
-        print('Attempting to start recording to: $_recordFilePath');
-
-      await _audioRecorder.start(
-        path: _recordFilePath!,
-        encoder: AudioEncoder.aacLc,
-        bitRate: 128000,
-        samplingRate: 44100,
-      );
-      await Future.delayed(const Duration(milliseconds: 100)); // Small delay
-
-      bool isRecording = await _audioRecorder.isRecording();
-      if (isRecording) {
-        _recordingStartTime = DateTime.now();
-        if (mounted) setState(() => _hasRecorded = false); // Reset hasRecorded
-        if (kDebugMode) print("Recording started successfully.");
-
-        // Start speech-to-text listening
-        _audioRecordingProvider.startListening();
-        _startTimerDisplay(); // Start the timer display
-      } else {
-        _showSnackBar('Failed to start recording.');
-        if (mounted) setState(() => _recordFilePath = null);
-        if (kDebugMode) print("ERR: Recording did not start.");
-      }
-    } catch (e, stackTrace) {
-      if (kDebugMode) print('Error starting recording: $e\n$stackTrace');
-      _showSnackBar(
-        'Failed to start recording: ${e.toString()}',
-      ); // Show more specific error
-      if (mounted)
-        setState(() {
-          // Use provider to update isListening
-          // _isRecording = false;
-          _hasRecorded = false;
-          _recordFilePath = null;
-          _timer?.cancel(); // Cancel timer on error
-        });
-      _audioRecordingProvider.cancelListening(); // Cancel STT on error
+  // Function to handle starting or stopping the recording
+  void _toggleRecording(
+    RecordingSessionProvider recordingProvider,
+    AudioRecordingProvider audioTranscriptProvider,
+  ) async {
+    if (recordingProvider.isRecording) {
+      await recordingProvider.stopRecording(audioTranscriptProvider);
+    } else {
+      await recordingProvider.startRecording(audioTranscriptProvider);
     }
   }
 
-  Future<void> _stopRecording() async {
-    // Use provider state
-    if (!_audioRecordingProvider.isListening) return;
-    try {
-      final path = await _audioRecorder.stop();
-      if (kDebugMode) print("Recording stopped. Path: $path");
-
-      // Stop speech-to-text listening
-      _audioRecordingProvider.stopListening();
-      _timer?.cancel(); // Stop timer
-
-      if (path != null) {
-        _recordingEndTime = DateTime.now();
-        if (mounted) {
-          setState(() {
-            _hasRecorded = true; // Mark as recorded
-            _recordFilePath =
-                path; // Ensure _recordFilePath is updated with the final path
-          });
-        }
-      } else {
-        if (kDebugMode) print("ERR: _audioRecorder.stop() returned null.");
-        _showSnackBar('Failed to get recording path after stopping.');
-        if (mounted) {
-          setState(() {
-            _hasRecorded = false;
-            _recordFilePath = null;
-            _recordingStartTime = null;
-            _recordingEndTime = null;
-          });
-        }
-      }
-    } catch (e, stackTrace) {
-      if (kDebugMode) print('Error stopping recording: $e\n$stackTrace');
-      _showSnackBar('Failed to stop recording: ${e.toString()}');
-      if (mounted) {
-        setState(() {
-          // _isRecording = false; // Use provider state
-          _hasRecorded = false;
-          _recordFilePath = null;
-          _recordingStartTime = null;
-          _recordingEndTime = null;
-        });
-      }
-      _audioRecordingProvider.cancelListening(); // Ensure STT is cancelled
-      _timer?.cancel(); // Cancel timer on error
-    }
-  }
-
-  Future<void> _saveMeetingRecord() async {
-    if (!_hasRecorded ||
-        _recordFilePath == null ||
-        _recordingStartTime == null ||
-        _recordingEndTime == null) {
-      _showSnackBar('No recording found to save, or recording was incomplete.');
-      if (kDebugMode)
-        print(
-          "Save attempted but conditions not met: hasRecorded=$_hasRecorded, path=$_recordFilePath, start=$_recordingStartTime, end=$_recordingEndTime",
-        );
-      return;
-    }
-    if (!mounted) return;
-
-    final String title =
-        _titleController.text.trim().isNotEmpty
-            ? _titleController.text.trim()
-            : 'Meeting ${formatMeetingDateTime(_recordingStartTime!).replaceAll(' •', '')}'; // Use utility for default title
-    final String participants = _participantsController.text.trim();
-    final List<String> participantList =
-        participants
-            .split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList();
-    final String uniqueId =
-        _recordingStartTime!.millisecondsSinceEpoch.toString();
-
-    // Get the final transcript from the provider
-    final String finalTranscript = _audioRecordingProvider.getFinalTranscript();
-
-    final newRecord = MeetingRecord(
-      id: uniqueId,
-      title: title,
-      startTime: _recordingStartTime!,
-      endTime: _recordingEndTime!,
-      audioFilePathUser1: _recordFilePath!,
-      transcript:
-          finalTranscript.isNotEmpty
-              ? finalTranscript
-              : 'No transcript available.', // Save the transcript
-      participantIds: participantList,
-      isFavorite: false,
+  // Function to handle saving the recording
+  void _saveRecording(
+    RecordingSessionProvider recordingProvider,
+    MeetingRecordsProvider meetingRecordsProvider,
+    AudioRecordingProvider audioTranscriptProvider,
+    AppLocalizations l10n, // Pass localization object
+  ) async {
+    final success = await recordingProvider.saveRecording(
+      title: _titleController.text,
+      participants: _participantsController.text,
+      meetingRecordsProvider: meetingRecordsProvider,
+      audioTranscriptProvider: audioTranscriptProvider,
     );
 
-    if (kDebugMode) print("Attempting to save record: ${newRecord.toMap()}");
-
-    try {
-      await _meetingRecordsProvider.addMeetingRecord(newRecord);
-      _showSnackBar('Meeting saved: $title');
+    if (success) {
+      _showSnackBar(l10n.saveSuccessMessage); // Use localized string
+      // Clear text fields after successful save
       _titleController.clear();
       _participantsController.clear();
+      // Navigate back to home after saving
       if (mounted) {
-        setState(() {
-          _hasRecorded = false;
-          _recordFilePath = null;
-          _recordingStartTime = null;
-          _recordingEndTime = null;
-          _audioRecordingProvider
-              .clearTranscript(); // Clear transcript after saving
-        });
-        if (kDebugMode) {
-          debugPrint("Save successful, navigating home via context.goNamed.");
-        }
-        context.goNamed('home'); // Use go_router to navigate
+        context.goNamed('home');
       }
-    } catch (e, stackTrace) {
-      if (kDebugMode) print('Error saving meeting record: $e\n$stackTrace');
-      _showSnackBar('Failed to save meeting record: ${e.toString()}');
+    } else {
+      // Error message is set in the provider, show it to the user
+      _showSnackBar(l10n.saveErrorMessage(recordingProvider.errorMessage));
     }
   }
 
-  // Helper to format duration while recording - Moved to core/utils
-  // String _formatDuration(DateTime startTime, DateTime? endTime) { ... }
+  // Function to handle discarding the recording
+  void _discardRecording(
+    RecordingSessionProvider recordingProvider,
+    AudioRecordingProvider audioTranscriptProvider,
+  ) {
+    recordingProvider.discardRecording(audioTranscriptProvider);
+    // Clear text fields on discard
+    _titleController.clear();
+    _participantsController.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Listen to the AudioRecordingProvider for UI updates
-    final audioRecordingProvider = Provider.of<AudioRecordingProvider>(context);
-    final bool canSave = !audioRecordingProvider.isListening && _hasRecorded;
+    // Access the localization object
+    final l10n = AppLocalizations.of(context)!;
+    // Consume providers
+    final recordingProvider = Provider.of<RecordingSessionProvider>(context);
+    final audioTranscriptProvider = Provider.of<AudioRecordingProvider>(
+      context,
+    );
+    final meetingRecordsProvider = Provider.of<MeetingRecordsProvider>(
+      context,
+      listen: false,
+    ); // Listen: false as we only call methods
+
+    // Determine if the save button should be enabled
+    final bool canSave =
+        recordingProvider.hasRecorded &&
+        !recordingProvider.isRecording &&
+        recordingProvider.state != RecordingState.saving;
 
     return PopScope(
-      canPop: true,
+      canPop:
+          !recordingProvider.isRecording &&
+          !recordingProvider
+              .hasRecorded, // Can pop if not recording and no unsaved record
       onPopInvoked: (bool didPop) async {
-        if (didPop) return;
+        if (kDebugMode) print('PopScope onPopInvoked: didPop = $didPop');
+        // If didPop is true, the pop was successful (either allowed by canPop or confirmed discard)
+        if (didPop) {
+          if (kDebugMode) print('Pop was successful, returning.');
+          return;
+        }
 
-        if (audioRecordingProvider.isListening || _hasRecorded) {
-          // Use provider state
+        // If didPop is false, the pop was prevented by canPop (due to unsaved changes/recording)
+        if (recordingProvider.isRecording || recordingProvider.hasRecorded) {
+          if (kDebugMode)
+            print(
+              'Unsaved changes or recording in progress. Showing discard dialog.',
+            );
           final confirm = await showDialog<bool>(
             context: context,
             builder:
                 (context) => AlertDialog(
-                  title: const Text('Discard changes?'),
+                  title: Text(
+                    l10n.discardChangesDialogTitle,
+                  ), // Use localized string
                   content: Text(
-                    audioRecordingProvider
-                            .isListening // Use provider state
-                        ? 'Recording is in progress. Stop and discard?'
-                        : 'You have an unsaved recording. Discard it?',
+                    recordingProvider.isRecording
+                        ? l10n
+                            .discardChangesDialogContentRecording // Use localized string
+                        : l10n
+                            .discardChangesDialogContentUnsaved, // Use localized string
                   ),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Cancel'),
+                      onPressed: () {
+                        if (kDebugMode)
+                          print('Discard dialog: Cancel pressed.');
+                        Navigator.of(
+                          context,
+                        ).pop(false); // Don't pop the dialog
+                      },
+                      child: Text(
+                        l10n.dialogButtonCancel,
+                      ), // Use localized string
                     ),
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Discard'),
+                      onPressed: () {
+                        if (kDebugMode)
+                          print('Discard dialog: Discard pressed.');
+                        Navigator.of(
+                          context,
+                        ).pop(true); // Pop the dialog with true
+                      },
+                      child: Text(
+                        l10n.dialogButtonDiscard,
+                      ), // Use localized string
                     ),
                   ],
                 ),
           );
 
+          // If the user confirmed discarding changes (the dialog returned true)
           if (confirm == true) {
-            if (audioRecordingProvider.isListening) {
-              // Use provider state
-              try {
-                await _audioRecorder.stop();
-                audioRecordingProvider.cancelListening(); // Cancel STT
-                _timer?.cancel(); // Cancel timer
-              } catch (e, stackTrace) {
-                if (kDebugMode)
-                  print("Error stopping recording on discard: $e\n$stackTrace");
-              }
-            }
+            if (kDebugMode)
+              print(
+                'User confirmed discard. Discarding recording and navigating to home.',
+              );
+            _discardRecording(recordingProvider, audioTranscriptProvider);
+            _showSnackBar(l10n.discardSuccessMessage); // Use localized string
+
+            // Add a small delay before navigating to home
+            await Future.delayed(const Duration(milliseconds: 50));
+            if (kDebugMode) print('Delay finished, navigating to home.');
+
+            // Navigate directly to home after discarding
             if (mounted) {
-              setState(() {
-                // _isRecording = false; // Use provider state
-                _hasRecorded = false;
-                _recordFilePath = null;
-                _recordingStartTime = null;
-                _recordingEndTime = null;
-                _audioRecordingProvider
-                    .clearTranscript(); // Clear transcript on discard
-              });
+              context.goNamed('home'); // Navigate to home
+              if (kDebugMode) print('context.goNamed("home") called.');
+            } else {
+              if (kDebugMode)
+                print('Not mounted after discard, cannot navigate.');
             }
-            if (mounted) {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              } else {
-                context.goNamed('home');
-              }
-            }
+          } else {
+            if (kDebugMode) print('User cancelled discard. Staying on screen.');
           }
         } else {
-          // If not recording and no unsaved recording, just pop
-          if (mounted) {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            } else {
-              context.goNamed('home');
-            }
-          }
+          // This case should ideally not be reached if canPop is set correctly,
+          // as the initial pop would have succeeded.
+          if (kDebugMode)
+            print(
+              'No unsaved changes or recording. Initial pop should have worked.',
+            );
         }
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            audioRecordingProvider
-                    .isListening // Use provider state for title
-                ? 'Recording...'
-                : (_hasRecorded ? 'Review & Save' : 'New Meeting'),
+            recordingProvider.isRecording
+                ? l10n
+                    .recordScreenTitleRecording // Use localized title
+                : (recordingProvider.hasRecorded
+                    ? l10n.recordScreenTitleReview
+                    : l10n.recordScreenTitleNew), // Use localized titles
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: 'Back',
+            tooltip:
+                l10n.dialogButtonCancel, // Consider a more specific tooltip like "Back"
             onPressed: () {
-              // Use PopScope's logic for back navigation
-              Navigator.of(context).pop();
+              // This onPressed triggers the PopScope's onPopInvoked callback.
+              if (kDebugMode) print('Leading back button icon pressed.');
+              Navigator.of(context).pop(); // This triggers the PopScope
             },
           ),
           actions: [
             IconButton(
               icon: Icon(
-                audioRecordingProvider
-                        .isListening // Use provider state for icon
+                recordingProvider.isRecording
                     ? Icons.stop_circle_outlined
                     : Icons.mic_none_outlined,
-                color: audioRecordingProvider.isListening ? Colors.red : null,
+                color: recordingProvider.isRecording ? Colors.red : null,
               ),
               tooltip:
-                  audioRecordingProvider.isListening
-                      ? 'Stop Recording'
-                      : 'Start Recording',
+                  recordingProvider.isRecording
+                      ? l10n
+                          .stopRecordingTooltip // Localize tooltip
+                      : l10n.startRecordingTooltip, // Localize tooltip
               iconSize: 28,
               onPressed:
-                  audioRecordingProvider.isListening
-                      ? _stopRecording
-                      : _startRecording, // Use provider state to determine action
+                  recordingProvider.state == RecordingState.saving
+                      ? null // Disable button while saving
+                      : () => _toggleRecording(
+                        recordingProvider,
+                        audioTranscriptProvider,
+                      ),
             ),
           ],
         ),
@@ -443,35 +271,37 @@ class _RecordScreenState extends State<RecordScreen> {
             padding: const EdgeInsets.all(16.0),
             children: <Widget>[
               // Status Indicator
-              if (audioRecordingProvider.isListening) // Use provider state
+              if (recordingProvider.state == RecordingState.recording)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.circle, color: Colors.red, size: 12),
                     const SizedBox(width: 8),
-                    const Text(
-                      "Recording...",
+                    Text(
+                      l10n.recordScreenTitleRecording, // Use localized string
                       style: TextStyle(color: Colors.red),
                     ),
-                    if (_recordingStartTime != null) ...[
-                      const SizedBox(width: 8),
-                      // Display the timer value
-                      Text(_formatTimerDuration(_startTimer)),
-                    ],
+                    const SizedBox(width: 8),
+                    // Display the timer value from the provider
+                    Text(recordingProvider.formattedDuration),
                   ],
                 )
-              else if (_hasRecorded)
-                const Row(
+              else if (recordingProvider.state == RecordingState.stopped)
+                Row(
+                  // Changed to Row to include localized text
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 16),
-                    SizedBox(width: 8),
-                    Text("Recording finished. Ready to save."),
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(l10n.recordingFinished), // Use localized string
                   ],
                 )
-              else if (audioRecordingProvider
-                  .isSpeechInitializing) // Indicate STT initialization
-                const Row(
+              else if (recordingProvider.state == RecordingState.saving)
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
@@ -480,13 +310,44 @@ class _RecordScreenState extends State<RecordScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                     SizedBox(width: 8),
-                    Text("Initializing Speech Recognition..."),
+                    Text(l10n.savingLabel), // Use localized string
                   ],
                 )
-              else if (!audioRecordingProvider.speechEnabled &&
-                  !audioRecordingProvider
+              else if (recordingProvider.state == RecordingState.error)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red, size: 16),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        // Error message is already localized in the provider or is a system message
+                        "Error: ${recordingProvider.errorMessage}",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                )
+              else if (audioTranscriptProvider
+                  .isSpeechInitializing) // Indicate STT initialization
+                Row(
+                  // Changed to Row to include localized text
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 8),
+                    Text(l10n.sttInitializing), // Use localized string
+                  ],
+                )
+              else if (!audioTranscriptProvider.speechEnabled &&
+                  !audioTranscriptProvider
                       .isSpeechInitializing) // Indicate STT not enabled
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
@@ -498,7 +359,7 @@ class _RecordScreenState extends State<RecordScreen> {
                     Expanded(
                       // Use Expanded to prevent overflow
                       child: Text(
-                        "Speech recognition not available or permission denied. Transcription will be disabled.",
+                        l10n.speechRecognitionUnavailable, // Use localized string
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.orange),
                       ),
@@ -506,8 +367,8 @@ class _RecordScreenState extends State<RecordScreen> {
                   ],
                 )
               else
-                const Text(
-                  "Tap the microphone button above to start recording.",
+                Text(
+                  l10n.tapMicToRecord, // Use localized string
                   textAlign: TextAlign.center,
                 ),
 
@@ -515,17 +376,19 @@ class _RecordScreenState extends State<RecordScreen> {
               TextField(
                 controller: _titleController,
                 enabled:
-                    !audioRecordingProvider
-                        .isListening, // Disable while recording
+                    !recordingProvider.isRecording &&
+                    recordingProvider.state !=
+                        RecordingState
+                            .saving, // Disable while recording or saving
                 decoration: InputDecoration(
-                  labelText: 'Meeting Title (Optional)',
-                  hintText: 'Defaults to date/time if left blank',
+                  labelText: l10n.meetingTitleLabel, // Localize label
+                  hintText: l10n.meetingTitleHint, // Use localized hint
                   border: const OutlineInputBorder(),
                   suffixIcon:
-                      !audioRecordingProvider.isListening &&
-                              _titleController
-                                  .text
-                                  .isNotEmpty // Disable while recording
+                      !recordingProvider.isRecording &&
+                              recordingProvider.state !=
+                                  RecordingState.saving &&
+                              _titleController.text.isNotEmpty
                           ? IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () => _titleController.clear(),
@@ -537,16 +400,19 @@ class _RecordScreenState extends State<RecordScreen> {
               TextField(
                 controller: _participantsController,
                 enabled:
-                    !audioRecordingProvider
-                        .isListening, // Disable while recording
+                    !recordingProvider.isRecording &&
+                    recordingProvider.state !=
+                        RecordingState
+                            .saving, // Disable while recording or saving
                 decoration: InputDecoration(
-                  labelText: 'Participants (Optional, comma-separated)',
+                  labelText: l10n.participantsLabel, // Localize label
+                  hintText: l10n.participantsHint, // Use localized hint
                   border: const OutlineInputBorder(),
                   suffixIcon:
-                      !audioRecordingProvider.isListening &&
-                              _participantsController
-                                  .text
-                                  .isNotEmpty // Disable while recording
+                      !recordingProvider.isRecording &&
+                              recordingProvider.state !=
+                                  RecordingState.saving &&
+                              _participantsController.text.isNotEmpty
                           ? IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () => _participantsController.clear(),
@@ -556,24 +422,31 @@ class _RecordScreenState extends State<RecordScreen> {
               ),
               const SizedBox(height: 20),
               // Show transcript area after recording or while listening
-              if (_hasRecorded || audioRecordingProvider.isListening)
+              if (recordingProvider.state != RecordingState.idle &&
+                  recordingProvider.state !=
+                      RecordingState
+                          .error) // Show transcript area if not idle or error
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Transcript:',
+                      l10n.transcriptTitle, // Use localized string
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     Consumer<AudioRecordingProvider>(
                       // Display live/final transcript
                       builder: (context, provider, child) {
+                        String transcriptText =
+                            provider.currentTranscript.isNotEmpty
+                                ? provider.currentTranscript
+                                : (recordingProvider.isRecording
+                                    ? l10n
+                                        .sttListening // Use localized string
+                                    : l10n
+                                        .sttGeneratingTranscript); // Use localized string
                         return Text(
-                          provider.currentTranscript.isNotEmpty
-                              ? provider.currentTranscript
-                              : (provider.isListening
-                                  ? 'Listening...'
-                                  : 'Generating transcript...'), // Show appropriate message
+                          transcriptText,
                           style: Theme.of(context).textTheme.bodyMedium,
                         );
                       },
@@ -583,14 +456,108 @@ class _RecordScreenState extends State<RecordScreen> {
               const SizedBox(height: 40),
               ElevatedButton.icon(
                 icon: const Icon(Icons.save_alt_outlined),
-                label: const Text('Save Meeting Recording'),
+                label: Text(l10n.saveMeetingButton), // Use localized string
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   textStyle: const TextStyle(fontSize: 16),
                 ),
-                onPressed: canSave ? _saveMeetingRecord : null,
+                onPressed:
+                    canSave
+                        ? () => _saveRecording(
+                          recordingProvider,
+                          meetingRecordsProvider,
+                          audioTranscriptProvider,
+                          l10n, // Pass localization object
+                        )
+                        : null,
               ),
               const SizedBox(height: 20),
+              // Add Discard button
+              if (recordingProvider.hasRecorded)
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  label: Text(
+                    l10n.discardRecordingButton,
+                  ), // Use localized string
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    textStyle: const TextStyle(fontSize: 16),
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  onPressed:
+                      recordingProvider.state == RecordingState.saving
+                          ? null // Disable button while saving
+                          : () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder:
+                                  (context) => AlertDialog(
+                                    title: Text(
+                                      l10n.discardRecordingDialogTitle,
+                                    ), // Use localized string
+                                    content: Text(
+                                      l10n.discardRecordingDialogContent,
+                                    ), // Use localized string
+                                    actions: [
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.of(
+                                              context,
+                                            ).pop(false),
+                                        child: Text(
+                                          l10n.dialogButtonCancel,
+                                        ), // Use localized string
+                                      ),
+                                      TextButton(
+                                        onPressed:
+                                            () =>
+                                                Navigator.of(context).pop(true),
+                                        child: Text(
+                                          l10n.dialogButtonDiscard,
+                                        ), // Use localized string
+                                      ),
+                                    ],
+                                  ),
+                            );
+                            if (confirm == true) {
+                              if (kDebugMode)
+                                print(
+                                  'User confirmed discard from discard button. Discarding recording and navigating to home.',
+                                );
+                              _discardRecording(
+                                recordingProvider,
+                                audioTranscriptProvider,
+                              );
+                              _showSnackBar(
+                                l10n.discardSuccessMessage,
+                              ); // Use localized string
+
+                              // Add a small delay before navigating to home
+                              await Future.delayed(
+                                const Duration(milliseconds: 50),
+                              );
+                              if (kDebugMode)
+                                print(
+                                  'Delay finished, navigating to home from discard button.',
+                                );
+
+                              // Navigate directly to home after discarding
+                              if (mounted) {
+                                context.goNamed('home'); // Navigate to home
+                                if (kDebugMode)
+                                  print(
+                                    'context.goNamed("home") called from discard button.',
+                                  );
+                              } else {
+                                if (kDebugMode)
+                                  print(
+                                    'Not mounted after discard from discard button, cannot navigate.',
+                                  );
+                              }
+                            }
+                          },
+                ),
             ],
           ),
         ),

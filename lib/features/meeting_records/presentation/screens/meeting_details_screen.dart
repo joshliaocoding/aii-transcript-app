@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import generated localizations
+
 import 'package:ai_transcript_app/features/meeting_records/domain/entities/meeting_record.dart';
 import 'package:ai_transcript_app/features/meeting_records/presentation/providers/meeting_records_provider.dart';
 import 'package:ai_transcript_app/core/utils/date_formatting.dart'; // Import date formatting utility
@@ -11,6 +13,8 @@ class MeetingDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Access the localization object
+    final l10n = AppLocalizations.of(context)!;
     // Access the provider to find the meeting record
     final meetingRecordsProvider = Provider.of<MeetingRecordsProvider>(context);
     final meetingRecord = meetingRecordsProvider.getMeetingRecordById(
@@ -20,8 +24,12 @@ class MeetingDetailsScreen extends StatelessWidget {
     // Handle case where record is not found
     if (meetingRecord == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Details Not Found')),
-        body: const Center(child: Text('Meeting record not found.')),
+        appBar: AppBar(
+          title: const Text('Details Not Found'),
+        ), // Consider localizing this error title too
+        body: const Center(
+          child: Text('Meeting record not found.'),
+        ), // Consider localizing this error message too
       );
     }
 
@@ -42,8 +50,9 @@ class MeetingDetailsScreen extends StatelessWidget {
                   content: Text(
                     meetingRecord
                             .isFavorite // Check the updated status from provider state
-                        ? 'Removed from favorites'
-                        : 'Added to favorites',
+                        ? l10n
+                            .removedFromFavorites // Use localized string
+                        : l10n.addedToFavorites, // Use localized string
                   ),
                   duration: const Duration(seconds: 1),
                 ),
@@ -58,23 +67,26 @@ class MeetingDetailsScreen extends StatelessWidget {
         child: ListView(
           children: [
             Text(
-              'Start Time: ${formatMeetingDateTime(meetingRecord.startTime)}',
+              // Use localized string for label
+              '${l10n.startTimeLabel}: ${formatMeetingDateTime(meetingRecord.startTime)}',
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'End Time: ${meetingRecord.endTime != null ? formatMeetingDateTime(meetingRecord.endTime!) : 'Not ended'}',
+              // Use localized string for label and "Not ended"
+              '${l10n.endTimeLabel}: ${meetingRecord.endTime != null ? formatMeetingDateTime(meetingRecord.endTime!) : l10n.notEndedLabel}',
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Duration: ${formatMeetingDuration(meetingRecord.startTime, meetingRecord.endTime)}',
+              // Use localized string for label
+              '${l10n.durationLabel}: ${formatMeetingDuration(meetingRecord.startTime, meetingRecord.endTime)}',
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 16),
             if (meetingRecord.participantIds.isNotEmpty) ...[
               Text(
-                'Participants:',
+                l10n.participantsLabel, // Use localized string
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -88,18 +100,22 @@ class MeetingDetailsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
             ],
-            Text('Transcript:', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l10n.transcriptTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ), // Use localized string
             const SizedBox(height: 8),
             Text(
               meetingRecord.transcript.isNotEmpty
                   ? meetingRecord.transcript
-                  : 'No transcript available.',
+                  : l10n.noTranscriptAvailable, // Use localized string
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             // Display audio file path if needed
             if (meetingRecord.audioFilePathUser1 != null) ...[
               const SizedBox(height: 16),
               Text(
+                // Consider if you need to localize "Audio File Path"
                 'Audio File Path: ${meetingRecord.audioFilePathUser1}',
                 style: Theme.of(
                   context,

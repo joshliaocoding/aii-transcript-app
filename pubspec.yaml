@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations: # Add this line
+    sdk: flutter # Add this line
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -42,6 +44,7 @@ dependencies:
   speech_to_text: ^6.3.0 # For speech to text transcription
   permission_handler: ^11.3.0 # For handling permissions (microphone, speech)
   intl: ^0.19.0 # For date and time formatting
+  shared_preferences: ^2.0.15 # Add this line for language preference persistence
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +66,10 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Enable generation of localized Strings from arb files.
+  generate: true # Add this line
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:
