@@ -1,0 +1,55 @@
+PODS:
+  - Flutter (1.0.0)
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - permission_handler_apple (9.3.0):
+    - Flutter
+  - record (0.0.1):
+    - Flutter
+  - speech_to_text (0.0.1):
+    - Flutter
+    - Try
+  - sqflite_darwin (0.0.4):
+    - Flutter
+    - FlutterMacOS
+  - Try (2.1.1)
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - record (from `.symlinks/plugins/record/ios`)
+  - speech_to_text (from `.symlinks/plugins/speech_to_text/ios`)
+  - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
+
+SPEC REPOS:
+  trunk:
+    - Try
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
+  record:
+    :path: ".symlinks/plugins/record/ios"
+  speech_to_text:
+    :path: ".symlinks/plugins/speech_to_text/ios"
+  sqflite_darwin:
+    :path: ".symlinks/plugins/sqflite_darwin/darwin"
+
+SPEC CHECKSUMS:
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
+  record: cae05d8dd3cdb1dea3511b20e5a5811a1ae00d0d
+  speech_to_text: b43a7d99aef037bd758ed8e45d79bbac035d2dfe
+  sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
+  Try: 5ef669ae832617b3cee58cb2c6f99fb767a4ff96
+
+PODFILE CHECKSUM: 8fc4371e765f6484da257fdb65f4a5570ec0747c
+
+COCOAPODS: 1.16.2
