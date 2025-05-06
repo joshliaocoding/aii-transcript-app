@@ -4,11 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import generated localizations
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:ai_transcript_app/features/recording/presentation/providers/audio_recording_provider.dart';
-import 'package:ai_transcript_app/features/recording/presentation/providers/recording_session_provider.dart'; // Import the new provider
-import 'package:ai_transcript_app/features/meeting_records/presentation/providers/meeting_records_provider.dart'; // Import meeting records provider
+import 'package:ai_transcript_app/features/recording/presentation/providers/recording_session_provider.dart';
+import 'package:ai_transcript_app/features/meeting_records/presentation/providers/meeting_records_provider.dart';
 
 class RecordScreen extends StatefulWidget {
   const RecordScreen({super.key});
@@ -20,12 +20,14 @@ class RecordScreen extends StatefulWidget {
 class _RecordScreenState extends State<RecordScreen> {
   late TextEditingController _titleController;
   late TextEditingController _participantsController;
+  late TextEditingController _descriptionController;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
     _participantsController = TextEditingController();
+    _descriptionController = TextEditingController();
 
     // Initialize Speech-to-Text when the screen loads.
     // This is now handled by the AudioRecordingProvider's constructor or first access,
@@ -41,6 +43,7 @@ class _RecordScreenState extends State<RecordScreen> {
   void dispose() {
     _titleController.dispose();
     _participantsController.dispose();
+    _descriptionController.dispose();
     // Note: Disposing of the recorder and cancelling timers is now handled
     // in the RecordingSessionProvider's dispose method.
     // Cancelling STT listening is handled by the provider's discard method.
@@ -76,6 +79,7 @@ class _RecordScreenState extends State<RecordScreen> {
     final success = await recordingProvider.saveRecording(
       title: _titleController.text,
       participants: _participantsController.text,
+      description: _descriptionController.text,
       meetingRecordsProvider: meetingRecordsProvider,
       audioTranscriptProvider: audioTranscriptProvider,
     );
@@ -416,6 +420,33 @@ class _RecordScreenState extends State<RecordScreen> {
                           ? IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () => _participantsController.clear(),
+                          )
+                          : null,
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                // Add the description text field
+                controller: _descriptionController,
+                enabled:
+                    !recordingProvider.isRecording &&
+                    recordingProvider.state != RecordingState.saving,
+                maxLines: 5, // Allow multiple lines for description
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                  labelText:
+                      l10n.descriptionLabel, // You'll need to add this localization key
+                  hintText:
+                      l10n.descriptionHint, // You'll need to add this localization key
+                  border: const OutlineInputBorder(),
+                  suffixIcon:
+                      !recordingProvider.isRecording &&
+                              recordingProvider.state !=
+                                  RecordingState.saving &&
+                              _descriptionController.text.isNotEmpty
+                          ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () => _descriptionController.clear(),
                           )
                           : null,
                 ),

@@ -18,7 +18,7 @@ class DatabaseHelper {
   static const columnTranscript = 'transcript';
   static const columnIsFavorite = 'is_favorite';
   // Define other column names here, matching your MeetingRecord fields
-  static const columnParticipantIds = 'participant_ids'; // Example
+  static const columnParticipantIds = 'participant_ids';
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -37,6 +37,7 @@ class DatabaseHelper {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -45,16 +46,27 @@ class DatabaseHelper {
       CREATE TABLE $tableMeetingRecords (
         $columnId TEXT PRIMARY KEY,
         $columnTitle TEXT,
+        $columnDescription TEXT,
         $columnStartTime INTEGER,
         $columnEndTime INTEGER,
         $columnAudioFilePathUser1 TEXT,
         $columnAudioFilePathUser2 TEXT,
         $columnTranscript TEXT,
         $columnIsFavorite INTEGER,
-        $columnParticipantIds TEXT // Example for storing list as CSV
-        // Add other columns here
+        $columnParticipantIds TEXT 
+        $columnDescription TEXT
+        -- Add other columns here
       )
       ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        'ALTER TABLE $tableMeetingRecords ADD COLUMN $columnDescription TEXT',
+      );
+    }
+    // Add other migration steps for future versions here
   }
 
   Future<int> insertMeetingRecord(Map<String, dynamic> meetingRecord) async {

@@ -83,7 +83,23 @@ class MeetingDetailsScreen extends StatelessWidget {
               '${l10n.durationLabel}: ${formatMeetingDuration(meetingRecord.startTime, meetingRecord.endTime)}',
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: 16),
+            // Add the description field here
+            if (meetingRecord.description != null &&
+                meetingRecord.description!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                l10n.descriptionLabel, // Use localized string for label (add this to your .arb files)
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                meetingRecord.description!,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+            const SizedBox(
+              height: 16,
+            ), // Add some space before the next section
             if (meetingRecord.participantIds.isNotEmpty) ...[
               Text(
                 l10n.participantsLabel, // Use localized string

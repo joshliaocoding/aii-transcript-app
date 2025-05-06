@@ -4,6 +4,8 @@
     "profileTitle": "Profile",
     "profileSectionTitle": "Profile Section",
     "profileSectionDescription": "User settings and information will go here.",
+    "descriptionLabel": "Description",
+    "descriptionHint": "Enter meeting description (optional)",
     "languageSettingTitle": "Language",
     "homeTitle": "Recent Meetings",
     "savedMeetingsTitle": "Saved Meetings",
@@ -51,5 +53,30 @@
     "endTimeLabel": "End Time",
     "durationLabel": "Duration",
     "notEndedLabel": "Not ended",
-    "noTranscriptAvailable": "No transcript available."
+    "noTranscriptAvailable": "No transcript available.",
+    "themeSettingTitle": "Theme", 
+    "systemDefaultTheme": "System Default", 
+    "lightModeTheme": "Light Mode", 
+    "darkModeTheme": "Dark Mode",
+    "deleteMeetingDialogTitle": "Delete Meeting", 
+    "deleteMeetingDialogContent": "Are you sure you want to delete this meeting record? This action cannot be undone.", 
+    "dialogButtonDelete": "Delete", 
+    "deleteMeetingTooltip": "Delete Meeting", 
+    "deleteSuccessMessage": "Meeting record deleted.", 
+    "deleteErrorMessage": "Failed to delete meeting record: {error}", 
+     "@deleteErrorMessage": { 
+        "placeholders": {
+            "error": {}
+        }
+     },
+    "detailsNotFoundTitle": "Details Not Found", 
+    "meetingRecordNotFound": "Meeting record not found.",
+    "confirmDeleteTitle": "Confirm Deletion",
+    "confirmDeleteContent": "Are you sure you want to delete this meeting record?",
+    "meetingDeletedMessage": "Meeting \"{title}\" deleted.",
+    "@meetingDeletedMessage": {
+        "placeholders": {
+            "title": {}
+        }
+    }
 }

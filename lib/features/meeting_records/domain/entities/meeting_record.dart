@@ -10,6 +10,7 @@ class MeetingRecord {
   final String? audioFilePathUser2;
   final String transcript;
   final bool isFavorite;
+  final String? description;
   // Add other relevant fields
 
   MeetingRecord({
@@ -22,6 +23,7 @@ class MeetingRecord {
     this.audioFilePathUser2,
     required this.transcript,
     this.isFavorite = false,
+    this.description,
     // Add other fields with their named parameters
   });
 
@@ -35,6 +37,7 @@ class MeetingRecord {
     String? audioFilePathUser2,
     String? transcript,
     bool? isFavorite,
+    String? description,
     // Copy with other fields
   }) {
     return MeetingRecord(
@@ -65,6 +68,7 @@ class MeetingRecord {
       DatabaseHelper.columnTranscript: transcript,
       DatabaseHelper.columnIsFavorite: isFavorite ? 1 : 0,
       'participant_ids': participantIds.join(','),
+      DatabaseHelper.columnDescription: description,
     };
   }
 
@@ -88,6 +92,7 @@ class MeetingRecord {
       transcript: map[DatabaseHelper.columnTranscript] as String,
       isFavorite: (map[DatabaseHelper.columnIsFavorite] as int) == 1,
       participantIds: (map['participant_ids'] as String?)?.split(',') ?? [],
+      description: map[DatabaseHelper.columnDescription] as String?,
     );
   }
 }

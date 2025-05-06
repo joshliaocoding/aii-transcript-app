@@ -6,6 +6,8 @@
     "profileSectionDescription": "使用者設定和資訊將在此處顯示。",
     "languageSettingTitle": "語言",
     "homeTitle": "最近的會議",
+    "descriptionLabel": "描述",
+    "descriptionHint": "輸入會議描述 (選填)",
     "savedMeetingsTitle": "已儲存的會議",
     "noSavedMeetings": "尚未儲存任何會議。",
     "tapHeartToSave": "點擊會議上的心形圖示即可儲存。",
@@ -51,5 +53,36 @@
     "endTimeLabel": "結束時間",
     "durationLabel": "持續時間",
     "notEndedLabel": "未結束",
-    "noTranscriptAvailable": "無逐字稿可用。"
+    "noTranscriptAvailable": "無逐字稿可用。",
+    "themeSettingTitle": "主題", 
+    "systemDefaultTheme": "系統預設", 
+    "lightModeTheme": "淺色模式", 
+    "darkModeTheme": "深色模式", 
+
+    "deleteMeetingDialogTitle": "刪除會議", 
+    "deleteMeetingDialogContent": "您確定要刪除此會議記錄嗎？此操作無法復原。", 
+    "dialogButtonDelete": "刪除", 
+    "deleteMeetingTooltip": "刪除會議", 
+    "deleteSuccessMessage": "會議記錄已刪除。", 
+    "deleteErrorMessage": "刪除會議記錄失敗：{error}", 
+    "@deleteErrorMessage": {
+    "placeholders": {
+            "error": {
+            "type": "Object"
+            }
+        }
+    },
+    "detailsNotFoundTitle": "找不到詳細資料",
+    "meetingRecordNotFound": "找不到會議記錄。",
+    
+    "confirmDeleteTitle": "確認刪除",
+    "confirmDeleteContent": "您確定要刪除此會議記錄嗎？",
+    "meetingDeletedMessage": "會議「{title}」已刪除。",
+    "@meetingDeletedMessage": {
+    "placeholders": {
+            "error": {
+            "type": "Object"
+            }
+        }
+    }
 }

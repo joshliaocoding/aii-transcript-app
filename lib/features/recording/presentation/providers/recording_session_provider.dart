@@ -190,6 +190,7 @@ class RecordingSessionProvider extends ChangeNotifier {
   Future<bool> saveRecording({
     required String title,
     required String participants,
+    String? description, // Add the optional description parameter
     required MeetingRecordsProvider meetingRecordsProvider,
     required AudioRecordingProvider audioTranscriptProvider,
   }) async {
@@ -235,6 +236,7 @@ class RecordingSessionProvider extends ChangeNotifier {
               : 'No transcript available.',
       participantIds: participantList,
       isFavorite: false,
+      description: description,
     );
 
     if (kDebugMode) print("Attempting to save record: ${newRecord.toMap()}");
