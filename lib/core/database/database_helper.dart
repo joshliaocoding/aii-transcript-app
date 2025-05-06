@@ -1,7 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:io' as io;
-import 'package:path_provider/path_provider.dart'; // Import path_provider
+import 'package:path_provider/path_provider.dart';
 
 class DatabaseHelper {
   static const _databaseName = "meeting_records.db";
@@ -12,6 +12,7 @@ class DatabaseHelper {
   static const columnTitle = 'title';
   static const columnStartTime = 'start_time';
   static const columnEndTime = 'end_time';
+  static const columnDescription = 'description';
   static const columnAudioFilePathUser1 = 'audio_file_path_user1';
   static const columnAudioFilePathUser2 = 'audio_file_path_user2';
   static const columnTranscript = 'transcript';
