@@ -37,14 +37,14 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   go_router: ^15.1.1 # For navigation
-  provider: ^6.1.4 # For state management
+  provider: ^6.1.5 # For state management
   sqflite: ^2.4.2 # For local database
   path_provider: ^2.1.5 # For getting the database path and temporary directory
   record: ^4.4.3 # For audio recording
-  speech_to_text: ^6.3.0 # For speech to text transcription
-  permission_handler: ^11.3.0 # For handling permissions (microphone, speech)
+  speech_to_text: ^7.0.0 # For speech to text transcription
+  permission_handler: ^12.0.0+1 # For handling permissions (microphone, speech)
   intl: ^0.19.0 # For date and time formatting
-  shared_preferences: ^2.0.15 # For language preference persistence
+  shared_preferences: ^2.5.3 # For language preference persistence
   path: ^1.9.1 # For path manipulation in database
 dev_dependencies:
   flutter_test:
