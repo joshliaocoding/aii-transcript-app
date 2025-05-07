@@ -81,5 +81,45 @@
     "deleteSuccessMessage": "تم حذف '{meetingTitle}'.",
     "deleteErrorMessage": "فشل حذف سجل الاجتماع: {errorMessage}",
     "detailsNotFoundTitle": "التفاصيل غير موجودة",
-    "meetingRecordNotFound": "لم يتم العثور على سجل الاجتماع."
+    "meetingRecordNotFound": "لم يتم العثور على سجل الاجتماع.",
+    "editMeetingTitle": "تعديل الاجتماع",
+    "@editMeetingTitle": {
+        "description": "Title for the screen where users edit meeting details"
+    },
+    "saveButtonLabel": "حفظ",
+    "@saveButtonLabel": {
+        "description": "Label for the save button (Note: 'SAVE' in all caps is less common in Arabic UI, 'حفظ' is standard for Save)"
+    },
+    "titleRequiredError": "العنوان لا يمكن أن يكون فارغًا.",
+    "@titleRequiredError": {
+        "description": "Error message if the meeting title is left empty"
+    },
+    "editMeetingTooltip": "تعديل تفاصيل الاجتماع",
+    "@editMeetingTooltip": {
+        "description": "Tooltip for the edit icon button"
+    },
+    "genericError": "An unexpected error occurred. Please try again.",
+    "@genericError": {
+        "description": "A generic error message displayed when something unexpected happens."
+    },
+    "genericError": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+    "@genericError": {
+        "description": "A generic error message displayed when something unexpected happens."
+    },
+    "detailsNotFoundTitle": "التفاصيل غير موجودة",
+    "@detailsNotFoundTitle": {
+        "description": "Title for the app bar when meeting details are not found"
+    },
+    "meetingRecordNotFound": "لم يتم العثور على سجل الاجتماع.",
+    "@meetingRecordNotFound": {
+        "description": "Message displayed when a specific meeting record cannot be found"
+    },
+    "removeFromFavoritesTooltip": "إزالة من المفضلة",
+    "@removeFromFavoritesTooltip": {
+        "description": "Tooltip for the favorite icon when a meeting is already a favorite"
+    },
+    "addToFavoritesTooltip": "إضافة إلى المفضلة",
+    "@addToFavoritesTooltip": {
+        "description": "Tooltip for the favorite icon when a meeting is not yet a favorite"
+    }
 }

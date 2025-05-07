@@ -84,5 +84,41 @@
     "deleteSuccessMessage": "'{meetingTitle}' हटाया गया।",
     "deleteErrorMessage": "मीटिंग रिकॉर्ड हटाने में विफलता: {errorMessage}",
     "detailsNotFoundTitle": "विवरण नहीं मिला",
-    "meetingRecordNotFound": "मीटिंग रिकॉर्ड नहीं मिला।"
+    "meetingRecordNotFound": "मीटिंग रिकॉर्ड नहीं मिला।",
+     "editMeetingTitle": "मीटिंग संपादित करें",
+    "@editMeetingTitle": {
+        "description": "Title for the screen where users edit meeting details"
+    },
+    "saveButtonLabel": "सहेजें",
+    "@saveButtonLabel": {
+        "description": "Label for the save button"
+    },
+    "titleRequiredError": "शीर्षक खाली नहीं हो सकता।",
+    "@titleRequiredError": {
+        "description": "Error message if the meeting title is left empty"
+    },
+    "editMeetingTooltip": "मीटिंग विवरण संपादित करें",
+    "@editMeetingTooltip": {
+        "description": "Tooltip for the edit icon button"
+    },
+    "genericError": "एक अप्रत्याशित त्रुटि हुई। कृपया पुन प्रयास करें।",
+    "@genericError": {
+        "description": "A generic error message displayed when something unexpected happens."
+    },
+    "detailsNotFoundTitle": "Détails non trouvés",
+    "@detailsNotFoundTitle": {
+        "description": "Title for the app bar when meeting details are not found"
+    },
+    "meetingRecordNotFound": "Enregistrement de la réunion non trouvé.",
+    "@meetingRecordNotFound": {
+        "description": "Message displayed when a specific meeting record cannot be found"
+    },
+    "removeFromFavoritesTooltip": "Retirer des favoris",
+    "@removeFromFavoritesTooltip": {
+        "description": "Tooltip for the favorite icon when a meeting is already a favorite"
+    },
+    "addToFavoritesTooltip": "Ajouter aux favoris",
+    "@addToFavoritesTooltip": {
+        "description": "Tooltip for the favorite icon when a meeting is not yet a favorite"
+    }
 }

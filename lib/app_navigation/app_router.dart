@@ -7,6 +7,7 @@ import 'package:ai_transcript_app/features/meeting_records/presentation/screens/
 import 'package:ai_transcript_app/features/profile/presentation/screens/profile_screen.dart';
 import 'package:ai_transcript_app/features/recording/presentation/screens/record_screen.dart';
 import 'package:ai_transcript_app/features/meeting_records/presentation/screens/saved_screen.dart';
+import 'package:ai_transcript_app/features/meeting_records/presentation/screens/edit_meeting_screen.dart';
 
 // Navigator keys
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -35,6 +36,7 @@ final goRouter = GoRouter(
                 key: ValueKey('home'), // Add unique keys for pages
                 child: HomeScreen(), // Updated location
               ),
+          // No parentNavigatorKey here; it will use the ShellRoute's _shellNavigatorKey
         ),
         GoRoute(
           path: '/saved', // Renamed path for clarity
@@ -44,6 +46,7 @@ final goRouter = GoRouter(
                 key: ValueKey('saved'), // Add unique keys for pages
                 child: SavedScreen(), // Updated location and name
               ),
+          // No parentNavigatorKey here
         ),
         GoRoute(
           path: '/profile',
@@ -53,24 +56,33 @@ final goRouter = GoRouter(
                 key: ValueKey('profile'), // Add unique keys for pages
                 child: ProfileScreen(), // Updated location
               ),
+          // No parentNavigatorKey here
         ),
       ],
     ),
-    // Top-level routes (no BottomNavBar)
+    // Top-level routes (no BottomNavBar, will use _rootNavigatorKey by default)
     GoRoute(
       path: '/record',
       name: 'record',
-      parentNavigatorKey:
-          _rootNavigatorKey, // Use root key to navigate OVER the shell
+      // parentNavigatorKey: _rootNavigatorKey, // Can be omitted for top-level routes
       builder: (context, state) => const RecordScreen(), // Updated location
     ),
     GoRoute(
       path: '/details/:meetingId',
       name: 'details',
-      parentNavigatorKey: _rootNavigatorKey, // Use root key
+      // parentNavigatorKey: _rootNavigatorKey, // Can be omitted for top-level routes
       builder: (context, state) {
         final meetingId = state.pathParameters['meetingId']!;
         return MeetingDetailsScreen(meetingId: meetingId); // Updated location
+      },
+    ),
+    GoRoute(
+      path: '/edit/:meetingId', // MOVED to be a top-level route
+      name: 'editMeeting',
+      // parentNavigatorKey: _rootNavigatorKey, // Can be omitted for top-level routes
+      builder: (context, state) {
+        final meetingId = state.pathParameters['meetingId']!;
+        return EditMeetingScreen(meetingId: meetingId);
       },
     ),
   ],
@@ -99,6 +111,7 @@ class _MainScreen extends StatelessWidget {
     if (location.startsWith('/profile')) {
       return 2;
     }
+    // Add checks for other shell routes if necessary
     return 0; // Default to home
   }
 
@@ -121,25 +134,27 @@ class _MainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: child, // Display the screen content
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _calculateSelectedIndex(context),
         onTap: (index) => _onItemTapped(index, context),
+        showSelectedLabels: false, // Hide label for selected item
+        showUnselectedLabels: false, // Hide label for unselected items
+        // type: BottomNavigationBarType.fixed, // Optional: ensures items don't shift if you have more than 3
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
-            label: 'Home',
+            label: '', // Set label to empty string
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bookmark_border),
             activeIcon: Icon(Icons.bookmark),
-            label: 'Saved', // Updated label
+            label: '', // Set label to empty string
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
-            label: 'Profile',
+            label: '', // Set label to empty string
           ),
         ],
       ),

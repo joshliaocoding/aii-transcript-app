@@ -66,7 +66,7 @@ class MeetingRecordsProvider extends ChangeNotifier {
     try {
       final dbHelper = DatabaseHelper.instance;
       await dbHelper.updateMeetingRecord(
-        updatedRecord.toMap(),
+        updatedRecord.toMap(), // Make sure toMap() is comprehensive
         updatedRecord.id,
       );
       final index = _meetingRecords.indexWhere(
@@ -74,12 +74,14 @@ class MeetingRecordsProvider extends ChangeNotifier {
       );
       if (index != -1) {
         _meetingRecords[index] = updatedRecord;
-        notifyListeners();
-        if (kDebugMode) print("Meeting record updated successfully.");
+        notifyListeners(); // This is key for UI updates
+        if (kDebugMode)
+          print("Meeting record updated successfully in provider.");
       }
     } catch (e, stackTrace) {
-      if (kDebugMode) print("Error updating meeting record: $e\n$stackTrace");
-      // Handle error updating record
+      if (kDebugMode)
+        print("Error updating meeting record in provider: $e\n$stackTrace");
+      throw e; // Re-throw to be caught by the UI
     }
   }
 

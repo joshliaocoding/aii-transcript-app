@@ -84,5 +84,41 @@
     "deleteSuccessMessage": "'{meetingTitle}' gelöscht.",
     "deleteErrorMessage": "Löschen des Meeting-Protokolls fehlgeschlagen: {errorMessage}",
     "detailsNotFoundTitle": "Details nicht gefunden",
-    "meetingRecordNotFound": "Meeting-Protokoll nicht gefunden."
+    "meetingRecordNotFound": "Meeting-Protokoll nicht gefunden.",
+    "editMeetingTitle": "Besprechung bearbeiten",
+    "@editMeetingTitle": {
+        "description": "Title for the screen where users edit meeting details"
+    },
+    "saveButtonLabel": "SPEICHERN",
+    "@saveButtonLabel": {
+        "description": "Label for the save button"
+    },
+    "titleRequiredError": "Titel darf nicht leer sein.",
+    "@titleRequiredError": {
+        "description": "Error message if the meeting title is left empty"
+    },
+    "editMeetingTooltip": "Besprechungsdetails bearbeiten",
+    "@editMeetingTooltip": {
+        "description": "Tooltip for the edit icon button"
+    },
+    "genericError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "@genericError": {
+        "description": "A generic error message displayed when something unexpected happens."
+    },
+    "detailsNotFoundTitle": "Details nicht gefunden",
+    "@detailsNotFoundTitle": {
+        "description": "Title for the app bar when meeting details are not found"
+    },
+    "meetingRecordNotFound": "Besprechungsaufzeichnung nicht gefunden.",
+    "@meetingRecordNotFound": {
+        "description": "Message displayed when a specific meeting record cannot be found"
+    },
+    "removeFromFavoritesTooltip": "Aus Favoriten entfernen",
+    "@removeFromFavoritesTooltip": {
+        "description": "Tooltip for the favorite icon when a meeting is already a favorite"
+    },
+    "addToFavoritesTooltip": "Zu Favoriten hinzufügen",
+    "@addToFavoritesTooltip": {
+        "description": "Tooltip for the favorite icon when a meeting is not yet a favorite"
+    }
 }

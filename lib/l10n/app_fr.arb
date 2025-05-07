@@ -84,5 +84,41 @@
     "deleteSuccessMessage": "'{meetingTitle}' supprimé.",
     "deleteErrorMessage": "Échec de la suppression de l'enregistrement de réunion : {errorMessage}",
     "detailsNotFoundTitle": "Détails introuvables",
-    "meetingRecordNotFound": "Enregistrement de réunion introuvable."
+    "meetingRecordNotFound": "Enregistrement de réunion introuvable.",
+    "editMeetingTitle": "Modifier la réunion",
+    "@editMeetingTitle": {
+        "description": "Title for the screen where users edit meeting details"
+    },
+    "saveButtonLabel": "ENREGISTRER",
+    "@saveButtonLabel": {
+        "description": "Label for the save button"
+    },
+    "titleRequiredError": "Le titre ne peut pas être vide.",
+    "@titleRequiredError": {
+        "description": "Error message if the meeting title is left empty"
+    },
+    "editMeetingTooltip": "Modifier les détails de la réunion",
+    "@editMeetingTooltip": {
+        "description": "Tooltip for the edit icon button"
+    },
+    "genericError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+    "@genericError": {
+        "description": "A generic error message displayed when something unexpected happens."
+    },
+    "detailsNotFoundTitle": "Détails non trouvés",
+    "@detailsNotFoundTitle": {
+        "description": "Title for the app bar when meeting details are not found"
+    },
+    "meetingRecordNotFound": "Enregistrement de la réunion non trouvé.",
+    "@meetingRecordNotFound": {
+        "description": "Message displayed when a specific meeting record cannot be found"
+    },
+    "removeFromFavoritesTooltip": "Retirer des favoris",
+    "@removeFromFavoritesTooltip": {
+        "description": "Tooltip for the favorite icon when a meeting is already a favorite"
+    },
+    "addToFavoritesTooltip": "Ajouter aux favoris",
+    "@addToFavoritesTooltip": {
+        "description": "Tooltip for the favorite icon when a meeting is not yet a favorite"
+    }
 }

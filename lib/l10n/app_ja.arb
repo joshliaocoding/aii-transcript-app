@@ -84,5 +84,41 @@
     "deleteSuccessMessage": "'{meetingTitle}' が削除されました。",
     "deleteErrorMessage": "会議記録の削除に失敗しました: {errorMessage}",
     "detailsNotFoundTitle": "詳細が見つかりません",
-    "meetingRecordNotFound": "会議記録が見つかりません。"
+    "meetingRecordNotFound": "会議記録が見つかりません。",
+    "editMeetingTitle": "会議を編集",
+    "@editMeetingTitle": {
+        "description": "Title for the screen where users edit meeting details"
+    },
+    "saveButtonLabel": "保存",
+    "@saveButtonLabel": {
+        "description": "Label for the save button"
+    },
+    "titleRequiredError": "タイトルを空にすることはできません。",
+    "@titleRequiredError": {
+        "description": "Error message if the meeting title is left empty"
+    },
+    "editMeetingTooltip": "会議の詳細を編集",
+    "@editMeetingTooltip": {
+        "description": "Tooltip for the edit icon button"
+    },
+    "genericError": "予期しないエラーが発生しました。もう一度お試しください。",
+    "@genericError": {
+        "description": "A generic error message displayed when something unexpected happens."
+    },
+    "detailsNotFoundTitle": "詳細が見つかりません",
+    "@detailsNotFoundTitle": {
+        "description": "Title for the app bar when meeting details are not found"
+    },
+    "meetingRecordNotFound": "会議の記録が見つかりません。",
+    "@meetingRecordNotFound": {
+        "description": "Message displayed when a specific meeting record cannot be found"
+    },
+    "removeFromFavoritesTooltip": "お気に入りから削除",
+    "@removeFromFavoritesTooltip": {
+        "description": "Tooltip for the favorite icon when a meeting is already a favorite"
+    },
+    "addToFavoritesTooltip": "お気に入りに追加",
+    "@addToFavoritesTooltip": {
+        "description": "Tooltip for the favorite icon when a meeting is not yet a favorite"
+    }
 }
