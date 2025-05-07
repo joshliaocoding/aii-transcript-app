@@ -3,6 +3,10 @@
     "appTitle": "Aplicación de Transcripción AI",
     "homeTitle": "Reuniones",
     "savedMeetingsTitle": "Reuniones Guardadas",
+    "meetingTitle": "Título de la reunión",
+    "@meetingTitle": {
+      "description": "Title for a meeting"
+      },
     "profileTitle": "Perfil",
     "recordScreenTitleNew": "Nueva Grabación",
     "recordScreenTitleRecording": "Grabando",

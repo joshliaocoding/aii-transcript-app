@@ -1,5 +1,6 @@
 {
     "@@locale": "en",
+    "meetingTitle": "Meeting Title",
     "appTitle": "AI Transcript App",
     "profileTitle": "Profile",
     "profileSectionTitle": "Profile Section",

@@ -6,6 +6,10 @@
     "profileTitle": "Perfil",
     "recordScreenTitleNew": "Nova Gravação",
     "recordScreenTitleRecording": "Gravando",
+    "meetingTitle": "Título da reunião",
+    "@meetingTitle": {
+      "description": "Title for a meeting"
+    },
     "recordScreenTitleReview": "Revisar Gravação",
     "saveSuccessMessage": "Gravação salva com sucesso!",
     "saveErrorMessage": "Falha ao salvar gravação: {errorMessage}",

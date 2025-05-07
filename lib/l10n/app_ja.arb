@@ -4,6 +4,10 @@
     "homeTitle": "会議",
     "savedMeetingsTitle": "保存された会議",
     "profileTitle": "プロフィール",
+    "meetingTitle": "会議のタイトル",
+    "@meetingTitle": {
+      "description": "Title for a meeting"
+    },
     "recordScreenTitleNew": "新規録音",
     "recordScreenTitleRecording": "録音中",
     "recordScreenTitleReview": "録音の確認",

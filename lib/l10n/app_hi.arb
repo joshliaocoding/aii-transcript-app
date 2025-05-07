@@ -4,6 +4,10 @@
     "homeTitle": "मीटिंग्स",
     "savedMeetingsTitle": "सहेजी गई मीटिंग्स",
     "profileTitle": "प्रोफ़ाइल",
+    "meetingTitle": "बैठक का शीर्षक",
+    "@meetingTitle": {
+      "description": "Title for a meeting"
+    },
     "recordScreenTitleNew": "नई रिकॉर्डिंग",
     "recordScreenTitleRecording": "रिकॉर्डिंग चल रही है",
     "recordScreenTitleReview": "रिकॉर्डिंग की समीक्षा करें",

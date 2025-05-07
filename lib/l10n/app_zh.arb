@@ -2,6 +2,10 @@
     "@@locale": "zh",
     "appTitle": "AI 會議記錄應用程式",
     "profileTitle": "個人資料",
+    "meetingTitle": "會議標題",
+    "@meetingTitle": {
+      "description": "Title for a meeting"
+    },
     "profileSectionTitle": "個人資料區塊",
     "profileSectionDescription": "使用者設定和資訊將在此處顯示。",
     "languageSettingTitle": "語言",

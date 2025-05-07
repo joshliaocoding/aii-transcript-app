@@ -1,6 +1,10 @@
 {
     "@@locale": "de",
     "appTitle": "KI-Transkript-App",
+    "meetingTitle": "Besprechungstitel",
+    "@meetingTitle": {
+      "description": "Title for a meeting"
+    },
     "homeTitle": "Meetings",
     "savedMeetingsTitle": "Gespeicherte Meetings",
     "profileTitle": "Profil",
