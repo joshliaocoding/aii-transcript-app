@@ -64,7 +64,7 @@
     "deleteMeetingTooltip": "Delete Meeting", 
     "deleteSuccessMessage": "Meeting record deleted.", 
     "deleteErrorMessage": "Failed to delete meeting record: {error}", 
-     "@deleteErrorMessage": { 
+    "@deleteErrorMessage": { 
         "placeholders": {
             "error": {}
         }

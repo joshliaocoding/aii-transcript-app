@@ -16,7 +16,8 @@ class ProfileScreen extends StatelessWidget {
       context,
     ); // Consume ThemeProvider
 
-    final List<String> supportedLanguageCodes = ['en', 'zh'];
+    final List<String> supportedLanguageCodes =
+        languageProvider.supportedLanguageCodes;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.profileTitle)),

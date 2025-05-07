@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+// Note: We don't need to import 'package:record/record.dart'; here
+// because RecordScreen interacts with recording via RecordingSessionProvider.
 
 import 'package:ai_transcript_app/features/recording/presentation/providers/audio_recording_provider.dart';
 import 'package:ai_transcript_app/features/recording/presentation/providers/recording_session_provider.dart';
@@ -89,8 +91,12 @@ class _RecordScreenState extends State<RecordScreen> {
       // Clear text fields after successful save
       _titleController.clear();
       _participantsController.clear();
+      _descriptionController.clear(); // Clear description as well
       // Navigate back to home after saving
       if (mounted) {
+        // Add a small delay before navigating
+        await Future.delayed(const Duration(milliseconds: 50));
+        // Explicitly navigate to home
         context.goNamed('home');
       }
     } else {
@@ -108,6 +114,55 @@ class _RecordScreenState extends State<RecordScreen> {
     // Clear text fields on discard
     _titleController.clear();
     _participantsController.clear();
+    _descriptionController.clear(); // Clear description as well
+  }
+
+  // Function to show discard confirmation dialog
+  Future<bool> _showDiscardConfirmationDialog(AppLocalizations l10n) async {
+    return await showDialog<bool>(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: Text(
+                  l10n.discardChangesDialogTitle,
+                ), // Use localized string
+                content: Text(
+                  Provider.of<RecordingSessionProvider>(
+                        context,
+                        listen: false,
+                      ).isRecording
+                      ? l10n
+                          .discardChangesDialogContentRecording // Use localized string
+                      : l10n
+                          .discardChangesDialogContentUnsaved, // Use localized string
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      // Add a small delay before popping the dialog
+                      Future.delayed(const Duration(milliseconds: 1)).then((_) {
+                        Navigator.of(context).pop(false); // Don't pop
+                      });
+                    },
+                    child: Text(
+                      l10n.dialogButtonCancel,
+                    ), // Use localized string
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // Add a small delay before popping the dialog
+                      Future.delayed(const Duration(milliseconds: 1)).then((_) {
+                        Navigator.of(context).pop(true); // Confirm pop
+                      });
+                    },
+                    child: Text(
+                      l10n.dialogButtonDiscard,
+                    ), // Use localized string
+                  ),
+                ],
+              ),
+        ) ??
+        false; // Return false if dialog is dismissed
   }
 
   @override
@@ -131,68 +186,36 @@ class _RecordScreenState extends State<RecordScreen> {
         recordingProvider.state != RecordingState.saving;
 
     return PopScope(
-      canPop:
-          !recordingProvider.isRecording &&
-          !recordingProvider
-              .hasRecorded, // Can pop if not recording and no unsaved record
+      // Use canPop to determine if a pop is allowed without user interaction
+      canPop: !recordingProvider.isRecording && !recordingProvider.hasRecorded,
+      // onPopInvoked is called when a pop is attempted (either allowed by canPop or when user confirms)
       onPopInvoked: (bool didPop) async {
-        if (kDebugMode) print('PopScope onPopInvoked: didPop = $didPop');
-        // If didPop is true, the pop was successful (either allowed by canPop or confirmed discard)
+        // If didPop is true, the pop was successful (either allowed by canPop or user confirmed discard)
         if (didPop) {
-          if (kDebugMode) print('Pop was successful, returning.');
-          return;
+          if (kDebugMode) print('Pop was successful.');
+          // If there's an ongoing recording or unsaved record, and the pop was
+          // not allowed by canPop (i.e., showDiscardConfirmationDialog was shown
+          // and confirmed), then discard the recording.
+          if ((recordingProvider.isRecording ||
+              recordingProvider.hasRecorded)) {
+            if (kDebugMode) print('Discarding recording after successful pop.');
+            _discardRecording(recordingProvider, audioTranscriptProvider);
+            _showSnackBar(l10n.discardSuccessMessage); // Use localized string
+            // No need to navigate explicitly here, as the pop has already occurred
+            // and should have returned to the previous route (home) via the PopScope mechanism
+            // IF canPop was true initially. If canPop was false and confirmed,
+            // the navigation back is handled below.
+          }
+          return; // Exit if the pop was successful
         }
 
-        // If didPop is false, the pop was prevented by canPop (due to unsaved changes/recording)
+        // If didPop is false, the pop was blocked by canPop (due to unsaved changes/recording)
+        // We now show the confirmation dialog.
         if (recordingProvider.isRecording || recordingProvider.hasRecorded) {
-          if (kDebugMode)
-            print(
-              'Unsaved changes or recording in progress. Showing discard dialog.',
-            );
-          final confirm = await showDialog<bool>(
-            context: context,
-            builder:
-                (context) => AlertDialog(
-                  title: Text(
-                    l10n.discardChangesDialogTitle,
-                  ), // Use localized string
-                  content: Text(
-                    recordingProvider.isRecording
-                        ? l10n
-                            .discardChangesDialogContentRecording // Use localized string
-                        : l10n
-                            .discardChangesDialogContentUnsaved, // Use localized string
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        if (kDebugMode)
-                          print('Discard dialog: Cancel pressed.');
-                        Navigator.of(
-                          context,
-                        ).pop(false); // Don't pop the dialog
-                      },
-                      child: Text(
-                        l10n.dialogButtonCancel,
-                      ), // Use localized string
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        if (kDebugMode)
-                          print('Discard dialog: Discard pressed.');
-                        Navigator.of(
-                          context,
-                        ).pop(true); // Pop the dialog with true
-                      },
-                      child: Text(
-                        l10n.dialogButtonDiscard,
-                      ), // Use localized string
-                    ),
-                  ],
-                ),
-          );
+          if (kDebugMode) print('Pop blocked. Showing discard dialog.');
+          final confirm = await _showDiscardConfirmationDialog(l10n);
 
-          // If the user confirmed discarding changes (the dialog returned true)
+          // If the user confirmed discarding changes
           if (confirm == true) {
             if (kDebugMode)
               print(
@@ -201,14 +224,12 @@ class _RecordScreenState extends State<RecordScreen> {
             _discardRecording(recordingProvider, audioTranscriptProvider);
             _showSnackBar(l10n.discardSuccessMessage); // Use localized string
 
-            // Add a small delay before navigating to home
-            await Future.delayed(const Duration(milliseconds: 50));
-            if (kDebugMode) print('Delay finished, navigating to home.');
-
-            // Navigate directly to home after discarding
+            // Explicitly navigate to home after confirmed discard
             if (mounted) {
-              context.goNamed('home'); // Navigate to home
-              if (kDebugMode) print('context.goNamed("home") called.');
+              await Future.delayed(const Duration(milliseconds: 50));
+              context.goNamed('home'); // Explicitly navigate to home
+              if (kDebugMode)
+                print('context.goNamed("home") called after discard.');
             } else {
               if (kDebugMode)
                 print('Not mounted after discard, cannot navigate.');
@@ -217,12 +238,9 @@ class _RecordScreenState extends State<RecordScreen> {
             if (kDebugMode) print('User cancelled discard. Staying on screen.');
           }
         } else {
-          // This case should ideally not be reached if canPop is set correctly,
-          // as the initial pop would have succeeded.
+          // This case should ideally not be reached if canPop is set correctly.
           if (kDebugMode)
-            print(
-              'No unsaved changes or recording. Initial pop should have worked.',
-            );
+            print('Pop blocked, but no unsaved changes/recording.');
         }
       },
       child: Scaffold(
@@ -240,9 +258,13 @@ class _RecordScreenState extends State<RecordScreen> {
             tooltip:
                 l10n.dialogButtonCancel, // Consider a more specific tooltip like "Back"
             onPressed: () {
-              // This onPressed triggers the PopScope's onPopInvoked callback.
-              if (kDebugMode) print('Leading back button icon pressed.');
-              Navigator.of(context).pop(); // This triggers the PopScope
+              // Use WidgetsBinding.instance.addPostFrameCallback to schedule navigation
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                // Explicitly navigate to home
+                context.goNamed('home');
+                if (kDebugMode)
+                  print('context.goNamed("home") called from back button.');
+              });
             },
           ),
           actions: [
@@ -281,13 +303,26 @@ class _RecordScreenState extends State<RecordScreen> {
                   children: [
                     const Icon(Icons.circle, color: Colors.red, size: 12),
                     const SizedBox(width: 8),
-                    Text(
-                      l10n.recordScreenTitleRecording, // Use localized string
-                      style: TextStyle(color: Colors.red),
+                    Expanded(
+                      // Added Expanded
+                      child: Text(
+                        l10n.recordScreenTitleRecording, // Use localized string
+                        style: TextStyle(color: Colors.red),
+                        overflow:
+                            TextOverflow
+                                .ellipsis, // Prevent text overflow within Expanded
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    // Display the timer value from the provider
-                    Text(recordingProvider.formattedDuration),
+                    Expanded(
+                      // Added Expanded
+                      child: Text(
+                        recordingProvider.formattedDuration,
+                        overflow:
+                            TextOverflow
+                                .ellipsis, // Prevent text overflow within Expanded
+                      ),
+                    ),
                   ],
                 )
               else if (recordingProvider.state == RecordingState.stopped)
@@ -301,7 +336,15 @@ class _RecordScreenState extends State<RecordScreen> {
                       size: 16,
                     ),
                     const SizedBox(width: 8),
-                    Text(l10n.recordingFinished), // Use localized string
+                    Expanded(
+                      // Added Expanded
+                      child: Text(
+                        l10n.recordingFinished,
+                        overflow:
+                            TextOverflow
+                                .ellipsis, // Prevent text overflow within Expanded
+                      ),
+                    ),
                   ],
                 )
               else if (recordingProvider.state == RecordingState.saving)
@@ -314,7 +357,15 @@ class _RecordScreenState extends State<RecordScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                     SizedBox(width: 8),
-                    Text(l10n.savingLabel), // Use localized string
+                    Expanded(
+                      // Added Expanded
+                      child: Text(
+                        l10n.savingLabel,
+                        overflow:
+                            TextOverflow
+                                .ellipsis, // Prevent text overflow within Expanded
+                      ),
+                    ),
                   ],
                 )
               else if (recordingProvider.state == RecordingState.error)
@@ -329,6 +380,9 @@ class _RecordScreenState extends State<RecordScreen> {
                         "Error: ${recordingProvider.errorMessage}",
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.red),
+                        overflow:
+                            TextOverflow
+                                .ellipsis, // Prevent text overflow within Expanded
                       ),
                     ),
                   ],
@@ -345,7 +399,15 @@ class _RecordScreenState extends State<RecordScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                     SizedBox(width: 8),
-                    Text(l10n.sttInitializing), // Use localized string
+                    Expanded(
+                      // Added Expanded
+                      child: Text(
+                        l10n.sttInitializing,
+                        overflow:
+                            TextOverflow
+                                .ellipsis, // Prevent text overflow within Expanded
+                      ),
+                    ),
                   ],
                 )
               else if (!audioTranscriptProvider.speechEnabled &&
@@ -366,6 +428,9 @@ class _RecordScreenState extends State<RecordScreen> {
                         l10n.speechRecognitionUnavailable, // Use localized string
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.orange),
+                        overflow:
+                            TextOverflow
+                                .ellipsis, // Prevent text overflow within Expanded
                       ),
                     ),
                   ],
@@ -520,37 +585,8 @@ class _RecordScreenState extends State<RecordScreen> {
                       recordingProvider.state == RecordingState.saving
                           ? null // Disable button while saving
                           : () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: Text(
-                                      l10n.discardRecordingDialogTitle,
-                                    ), // Use localized string
-                                    content: Text(
-                                      l10n.discardRecordingDialogContent,
-                                    ), // Use localized string
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.of(
-                                              context,
-                                            ).pop(false),
-                                        child: Text(
-                                          l10n.dialogButtonCancel,
-                                        ), // Use localized string
-                                      ),
-                                      TextButton(
-                                        onPressed:
-                                            () =>
-                                                Navigator.of(context).pop(true),
-                                        child: Text(
-                                          l10n.dialogButtonDiscard,
-                                        ), // Use localized string
-                                      ),
-                                    ],
-                                  ),
-                            );
+                            final confirm =
+                                await _showDiscardConfirmationDialog(l10n);
                             if (confirm == true) {
                               if (kDebugMode)
                                 print(
@@ -564,21 +600,17 @@ class _RecordScreenState extends State<RecordScreen> {
                                 l10n.discardSuccessMessage,
                               ); // Use localized string
 
-                              // Add a small delay before navigating to home
-                              await Future.delayed(
-                                const Duration(milliseconds: 50),
-                              );
-                              if (kDebugMode)
-                                print(
-                                  'Delay finished, navigating to home from discard button.',
-                                );
-
-                              // Navigate directly to home after discarding
+                              // Explicitly navigate to home after confirmed discard
                               if (mounted) {
-                                context.goNamed('home'); // Navigate to home
+                                await Future.delayed(
+                                  const Duration(milliseconds: 50),
+                                );
+                                context.goNamed(
+                                  'home',
+                                ); // Explicitly navigate to home
                                 if (kDebugMode)
                                   print(
-                                    'context.goNamed("home") called from discard button.',
+                                    'context.goNamed("home") called after discard.',
                                   );
                               } else {
                                 if (kDebugMode)
