@@ -1,26 +1,30 @@
 # ai_transcript_app
+AI transcript app is a project written by Flutter that can transcribe your meeting audio file into a transcript, then analyze it and summarize it afterward.
 
-A new Flutter project.
+## Setup
+Getting neccessary dependencies.
+```
+flutter pub get 
+```
 
 ## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Paste it to your shell in the root path of your project.
+```
+flutter run
+```
 
 ## File Structure
+This project used a feature-first file structure to organize files. It currently has features such as speech-to-text, recording, and storing in the user's device through SQLite. In the features/ folder, it contains other 3 folders that handle most of the work in this project.
+
+The core/ folder stores how I structured the SQLite database by starting with database_helper.dart. The exceptions.dart file determines how the project handles runtime errors.
+
+In app_router.dart file, I used the go_router package for routing different screens. It is extendable in the future when adding other new screens. Furthermore, the app_router.dart file works with the bottom navigation bar.
+
 lib
 ├── app_navigation
 │   └── app_router.dart
 ├── core
-│   ├── database
+│   ├── databasea
 │   │   └── database_helper.dart
 │   ├── errors
 │   │   └── exceptions.dart
@@ -72,5 +76,6 @@ lib
 └── shared
     ├── services
     └── widgets
+
 
 33 directories, 23 files
